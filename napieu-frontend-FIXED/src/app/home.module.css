@@ -1,0 +1,459 @@
+/* Add this to your global.css or create a new stylesheet */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
+/* Base styles */
+:root {
+  --primary-red: #d32f2f; /* Chinese red */
+  --primary-blue: #1976d2; /* Hungarian blue */
+  --primary-gold: #ffd700; /* Accent gold */
+  --dark-bg: #0a0a0a;
+  --light-bg: #f8f9fa;
+  --card-bg: #ffffff;
+  --text-dark: #1a1a1a;
+  --text-light: #666666;
+  --border-color: #e5e7eb;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
+  --gradient-red-blue: linear-gradient(135deg, var(--primary-red), var(--primary-blue));
+  --gradient-gold: linear-gradient(135deg, #ffd700, #ffb300);
+}
+
+/* Global reset and typography */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--light-bg);
+  color: var(--text-dark);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* Breaking News Banner - Ultra Attention Grabbing */
+.breaking-news-banner {
+  background: linear-gradient(90deg, 
+    var(--primary-red) 0%, 
+    #c62828 25%, 
+    var(--primary-red) 50%, 
+    #c62828 75%, 
+    var(--primary-red) 100%);
+  background-size: 200% 100%;
+  animation: gradientShift 3s ease infinite;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 3px solid var(--primary-gold);
+}
+
+.breaking-news-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.2), 
+    transparent);
+  animation: shine 2s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes shine {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* Hero Section - Cinematic */
+.hero-section {
+  position: relative;
+  background: linear-gradient(to bottom, 
+    rgba(10, 10, 10, 0.95) 0%,
+    rgba(26, 26, 26, 0.98) 100%);
+  color: white;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 50%, rgba(211, 47, 47, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(25, 118, 210, 0.15) 0%, transparent 50%);
+}
+
+.hero-image-container {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  transform: perspective(1000px) rotateY(0deg);
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.hero-image-container:hover {
+  transform: perspective(1000px) rotateY(-5deg) scale(1.02);
+}
+
+.hero-image-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    45deg,
+    transparent 0%,
+    rgba(255, 215, 0, 0.1) 50%,
+    transparent 100%
+  );
+  animation: lightSweep 3s ease-in-out infinite;
+}
+
+@keyframes lightSweep {
+  0%, 100% { transform: translateX(-100%); }
+  50% { transform: translateX(100%); }
+}
+
+/* Article Cards - Modern 3D */
+.article-card {
+  background: var(--card-bg);
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid transparent;
+  box-shadow: var(--shadow-sm);
+}
+
+.article-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary-blue);
+}
+
+.article-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--gradient-red-blue);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s ease;
+}
+
+.article-card:hover::before {
+  transform: scaleX(1);
+}
+
+/* Trending Badge */
+.trending-badge {
+  background: var(--gradient-red-blue);
+  color: white;
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
+  z-index: 10;
+}
+
+/* Category Tags - Animated */
+.category-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 16px;
+  border-radius: 24px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.category-tag::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.category-tag:hover::before {
+  left: 100%;
+}
+
+/* Quote Section - Elegant */
+.quote-section {
+  background: linear-gradient(135deg, 
+    rgba(26, 26, 26, 0.95) 0%,
+    rgba(10, 10, 10, 0.98) 100%);
+  position: relative;
+  isolation: isolate;
+}
+
+.quote-section::before {
+  content: '❝';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 30rem;
+  color: rgba(255, 215, 0, 0.05);
+  z-index: -1;
+  font-family: serif;
+  line-height: 1;
+}
+
+.quote-text {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  line-height: 1.4;
+  position: relative;
+  padding: 0 2rem;
+}
+
+.quote-text::before,
+.quote-text::after {
+  content: '"';
+  position: absolute;
+  color: var(--primary-gold);
+  font-size: 4rem;
+  font-family: serif;
+  opacity: 0.5;
+}
+
+.quote-text::before {
+  top: -2rem;
+  left: -1rem;
+}
+
+.quote-text::after {
+  bottom: -3rem;
+  right: -1rem;
+}
+
+/* Newsletter Section - Interactive */
+.newsletter-section {
+  background: linear-gradient(135deg, 
+    var(--primary-blue) 0%,
+    #1565c0 50%,
+    var(--primary-red) 100%);
+  background-size: 200% 200%;
+  animation: newsletterGradient 10s ease infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.newsletter-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 10% 20%, rgba(255, 215, 0, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+}
+
+@keyframes newsletterGradient {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.newsletter-input {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.newsletter-input:focus {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: var(--primary-gold);
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3);
+}
+
+.newsletter-input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Button Styles */
+.primary-button {
+  background: var(--gradient-red-blue);
+  color: white;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(211, 47, 47, 0.3);
+}
+
+.primary-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(211, 47, 47, 0.4);
+}
+
+.primary-button:active {
+  transform: translateY(0);
+}
+
+.primary-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.primary-button:hover::before {
+  left: 100%;
+}
+
+/* Stats Badges */
+.stats-badge {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.stats-badge:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Loading Animation */
+.loading-spinner {
+  width: 64px;
+  height: 64px;
+  border: 4px solid rgba(211, 47, 47, 0.1);
+  border-left-color: var(--primary-red);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 2rem 1rem;
+  }
+  
+  .hero-image-container {
+    border-radius: 12px;
+  }
+  
+  .article-card:hover {
+    transform: translateY(-4px);
+  }
+  
+  .quote-text {
+    padding: 0 1rem;
+  }
+  
+  .quote-text::before,
+  .quote-text::after {
+    font-size: 2rem;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--light-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gradient-red-blue);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #c62828, #1565c0);
+}
+
+/* Accessibility Focus Styles */
+*:focus {
+  outline: 3px solid var(--primary-gold);
+  outline-offset: 2px;
+}
+
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: 3px solid var(--primary-gold);
+  outline-offset: 2px;
+}
+
+/* Print Styles */
+@media print {
+  .article-card,
+  .hero-image-container {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  
+  .breaking-news-banner,
+  .newsletter-section {
+    display: none;
+  }
+}

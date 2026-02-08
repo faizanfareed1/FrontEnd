@@ -1,11 +1,15 @@
-'use client';
-
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Calendar, Clock } from 'lucide-react';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import CategoryClient from './CategoryClient';
 import { apiUrl } from '@/config/api';
+
+interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  description: string;
+  color: string;
+}
 
 interface Article {
   id: number;
@@ -19,195 +23,89 @@ interface Article {
   categories: Array<{ name: string; color: string }>;
 }
 
-interface Category {
-  id: number;
-  name: string;
-  slug: string;
-  description: string;
-  color: string;
+// This function generates all possible category slugs at build time
+export async function generateStaticParams() {
+  try {
+    const response = await fetch(apiUrl('/api/categories'));
+    if (!response.ok) {
+      console.error('Failed to fetch categories for static generation');
+      return [];
+    }
+    
+    const categories: Category[] = await response.json();
+    
+    return categories.map((category) => ({
+      slug: category.slug,
+    }));
+  } catch (error) {
+    console.error('Error generating static params:', error);
+    return [];
+  }
 }
 
-export default function CategoryPage() {
-  const params = useParams();
-  const router = useRouter();
-  const [category, setCategory] = useState<Category | null>(null);
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [theme, setTheme] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    fetchTheme();
-    fetchCategory();
-    fetchArticles();
-  }, [params.slug]);
-
-  const fetchTheme = async () => {
-    try {
-      const response = await fetch(apiUrl('/api/themes/active'));
-      if (response.ok) {
-        const data = await response.json();
-        setTheme(data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch theme:', error);
+// Generate metadata for each category
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  
+  try {
+    const response = await fetch(apiUrl(`/api/categories/${slug}`));
+    if (!response.ok) {
+      return {
+        title: 'Category Not Found | NAPI EU',
+      };
     }
-  };
-
-  const fetchCategory = async () => {
-    try {
-      const response = await fetch(apiUrl(`/api/categories/${params.slug}`));
-      if (!response.ok) {
-        setError('Category not found');
-        setLoading(false);
-        return;
-      }
-      const data = await response.json();
-      setCategory(data);
-    } catch (error) {
-      console.error('Failed to fetch category:', error);
-      setError('Failed to load category');
-      setLoading(false);
-    }
-  };
-
-  const fetchArticles = async () => {
-    try {
-      const response = await fetch(apiUrl(`/api/articles/category/${params.slug}`));
-      if (response.ok) {
-        const data = await response.json();
-        setArticles(data.content || data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch articles:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Header theme={theme} />
-        <div className="flex-grow flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-        </div>
-        <Footer theme={theme} />
-      </div>
-    );
+    
+    const category: Category = await response.json();
+    
+    return {
+      title: `${category.name} | NAPI EU`,
+      description: category.description || `Browse all articles in ${category.name}`,
+    };
+  } catch (error) {
+    return {
+      title: 'NAPI EU',
+    };
   }
+}
 
-  if (error || !category) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Header theme={theme} />
-        <div className="flex-grow flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">{error || 'Category not found'}</h1>
-            <button
-              onClick={() => router.push('/')}
-              className="text-blue-600 hover:text-blue-800 flex items-center gap-2 mx-auto"
-            >
-              <ArrowLeft size={20} />
-              Back to Home
-            </button>
-          </div>
-        </div>
-        <Footer theme={theme} />
-      </div>
-    );
-  }
+// Server component that fetches data
+export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  
+  let category: Category | null = null;
+  let articles: Article[] = [];
+  let error = '';
 
-  return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      <Header theme={theme} />
+  try {
+    // Fetch category details
+    const categoryResponse = await fetch(apiUrl(`/api/categories/${slug}`), {
+      next: { revalidate: 3600 }
+    });
+    
+    if (!categoryResponse.ok) {
+      if (categoryResponse.status === 404) {
+        notFound();
+      }
+      error = 'Failed to load category';
+    } else {
+      category = await categoryResponse.json();
+    }
+
+    // Fetch articles for this category
+    if (category) {
+      const articlesResponse = await fetch(apiUrl(`/api/articles/category/${slug}`), {
+        next: { revalidate: 3600 }
+      });
       
-      <main className="flex-grow">
-        <div className="max-w-7xl mx-auto px-4 py-12">
-          {/* Back Button */}
-          <button
-            onClick={() => router.back()}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
-          >
-            <ArrowLeft size={20} />
-            Back
-          </button>
+      if (articlesResponse.ok) {
+        const data = await articlesResponse.json();
+        articles = data.content || data || [];
+      }
+    }
+  } catch (err) {
+    console.error('Failed to fetch category data:', err);
+    error = 'Failed to load category';
+  }
 
-          {/* Category Header */}
-          <div className="mb-12">
-            <div 
-              className="inline-block px-4 py-2 rounded-full text-white font-medium mb-4"
-              style={{ backgroundColor: category.color || '#3b82f6' }}
-            >
-              {category.name}
-            </div>
-            {category.description && (
-              <p className="text-xl text-gray-600 max-w-3xl">
-                {category.description}
-              </p>
-            )}
-            <p className="text-gray-500 mt-4">
-              {articles.length} {articles.length === 1 ? 'article' : 'articles'}
-            </p>
-          </div>
-
-          {/* Articles Grid */}
-          {articles.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500 text-lg">No articles in this category yet.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {articles.map((article) => (
-                <article
-                  key={article.id}
-                  onClick={() => router.push(`/articles/${article.slug}`)}
-                  className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow cursor-pointer"
-                >
-                  {/* Featured Image */}
-                  {article.featuredImage && (
-                    <div className="aspect-video w-full overflow-hidden">
-                      <img
-                        src={article.featuredImage}
-                        alt={article.title}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                  )}
-
-                  <div className="p-6">
-                    {/* Title */}
-                    <h2 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 hover:text-blue-600 transition-colors">
-                      {article.title}
-                    </h2>
-
-                    {/* Excerpt */}
-                    {article.excerpt && (
-                      <p className="text-gray-600 mb-4 line-clamp-3">
-                        {article.excerpt}
-                      </p>
-                    )}
-
-                    {/* Meta */}
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <Calendar size={16} />
-                        <span>{new Date(article.publishedAt).toLocaleDateString()}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock size={16} />
-                        <span>{article.readTime} min</span>
-                      </div>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </div>
-      </main>
-
-      <Footer theme={theme} />
-    </div>
-  );
+  return <CategoryClient category={category} articles={articles} error={error} />;
 }

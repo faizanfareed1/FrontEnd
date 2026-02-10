@@ -22,14 +22,16 @@ const normalizeMediaUrl = (url: string) => {
   if (!url) return '';
 
   if (url.includes('localhost')) {
-    return url.replace(/^http:\/\/localhost:\d+/, apiUrl(''));
+    url = url.replace(/^http:\/\/localhost:\d+/, apiUrl(''));
   }
 
   if (url.startsWith('/')) {
-    return apiUrl(url);
+    url = apiUrl(url);
   }
 
-  return url;
+  // Add cache-busting timestamp to force reload
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}t=${Date.now()}`;
 };
 
 export default function MediaPage() {
@@ -70,31 +72,40 @@ export default function MediaPage() {
     setUploading(true);
     const token = localStorage.getItem('accessToken');
 
-    for (const file of Array.from(files)) {
-      try {
-        const formData = new FormData();
-        formData.append('file', file);
+    try {
+      for (const file of Array.from(files)) {
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
 
-        const response = await fetch(apiUrl('/api/media/upload'), {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        });
+          const response = await fetch(apiUrl('/api/media/upload'), {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            body: formData,
+          });
 
-        if (!response.ok) {
-          alert(`Failed to upload ${file.name}`);
+          if (!response.ok) {
+            alert(`Failed to upload ${file.name}`);
+          } else {
+            // Wait a bit for backend to process
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        } catch (error) {
+          console.error('Upload error:', error);
+          alert(`Error uploading ${file.name}`);
         }
-      } catch (error) {
-        console.error('Upload error:', error);
-        alert(`Error uploading ${file.name}`);
       }
-    }
 
-    setUploading(false);
-    fetchMedia();
-    if (fileInputRef.current) fileInputRef.current.value = '';
+      // Wait a bit more before refreshing
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await fetchMedia();
+      
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   const handleDelete = async (id: number) => {
@@ -185,15 +196,17 @@ export default function MediaPage() {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {filteredMedia.map((file) => (
               <div
-                key={file.id}
+                key={`${file.id}-${file.createdAt}`}
                 onClick={() => setSelectedFile(file)}
                 className="relative cursor-pointer rounded-lg overflow-hidden border-2 border-gray-200 hover:border-gray-300"
               >
                 <div className="aspect-square bg-gray-100">
                   <img
+                    key={`img-${file.id}-${Date.now()}`}
                     src={normalizeMediaUrl(file.url)}
                     alt={file.alt || file.originalFilename}
                     className="w-full h-full object-cover"
+                    loading="lazy"
                   />
                 </div>
                 <div className="absolute bottom-0 inset-x-0 bg-black/70 p-2 text-white text-xs truncate">

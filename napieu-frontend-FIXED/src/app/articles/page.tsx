@@ -18,7 +18,10 @@ export default function ArticlesPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   useEffect(() => {
-    fetchData();
+    // Only fetch on client side
+    if (typeof window !== 'undefined') {
+      fetchData();
+    }
   }, []);
 
   const fetchData = async () => {
@@ -29,7 +32,10 @@ export default function ArticlesPage() {
         fetch(apiUrl('/api/categories'))
       ]);
 
-      if (themeRes.ok) setTheme(await themeRes.json());
+      if (themeRes.ok) {
+        const data = await themeRes.json();
+        setTheme(data);
+      }
 
       if (articlesRes.ok) {
         const data = await articlesRes.json();
@@ -174,70 +180,82 @@ export default function ArticlesPage() {
         {/* ARTICLES */}
         <section className="py-14">
           <div className="max-w-7xl mx-auto px-4">
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredArticles.map(article => (
-                <article
-                  key={article.id}
-                  onClick={() => router.push(`/articles/${article.slug}`)}
-                  className="bg-slate-800/80 backdrop-blur border border-slate-700 rounded-xl overflow-hidden cursor-pointer hover:-translate-y-1 hover:shadow-2xl hover:border-blue-500/40 transition-all duration-300 group"
-                >
-                  <div className="relative aspect-video bg-slate-700 overflow-hidden">
-                    {article.featuredImage ? (
-                      <img
-                        src={article.featuredImage}
-                        alt={article.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-800" />
-                    )}
-                  </div>
-
-                  <div className="p-6">
-                    {article.categories?.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {article.categories.slice(0, 2).map(category => (
-                          <span
-                            key={category.id}
-                            className="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white rounded-full shadow-sm"
-                            style={{ backgroundColor: category.color || '#3b82f6' }}
-                          >
-                            {category.name}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                    <h2 className="text-xl font-bold text-white mb-3 line-clamp-2 group-hover:text-blue-400 transition">
-                      {article.title}
-                    </h2>
-
-                    {article.excerpt && (
-                      <p className="text-gray-400 text-sm line-clamp-3 mb-4">
-                        {article.excerpt}
-                      </p>
-                    )}
-
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <Calendar size={14} />
-                        {formatDate(article.publishedAt)}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock size={14} />
-                        {article.readTime} min
-                      </div>
-                      {article.views > 0 && (
-                        <div className="flex items-center gap-1">
-                          <Eye size={14} />
-                          {article.views.toLocaleString()}
-                        </div>
+            {filteredArticles.length === 0 ? (
+              <div className="text-center py-20">
+                <Newspaper size={64} className="mx-auto text-gray-600 mb-4" />
+                <h3 className="text-xl font-bold text-white mb-2">No articles found</h3>
+                <p className="text-gray-400">
+                  {searchQuery || selectedCategory !== 'all' 
+                    ? 'Try adjusting your filters' 
+                    : 'Check back soon for new coverage'}
+                </p>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {filteredArticles.map(article => (
+                  <article
+                    key={article.id}
+                    onClick={() => router.push(`/articles/${article.slug}`)}
+                    className="bg-slate-800/80 backdrop-blur border border-slate-700 rounded-xl overflow-hidden cursor-pointer hover:-translate-y-1 hover:shadow-2xl hover:border-blue-500/40 transition-all duration-300 group"
+                  >
+                    <div className="relative aspect-video bg-slate-700 overflow-hidden">
+                      {article.featuredImage ? (
+                        <img
+                          src={article.featuredImage}
+                          alt={article.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-800" />
                       )}
                     </div>
-                  </div>
-                </article>
-              ))}
-            </div>
+
+                    <div className="p-6">
+                      {article.categories?.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {article.categories.slice(0, 2).map(category => (
+                            <span
+                              key={category.id}
+                              className="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white rounded-full shadow-sm"
+                              style={{ backgroundColor: category.color || '#3b82f6' }}
+                            >
+                              {category.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      <h2 className="text-xl font-bold text-white mb-3 line-clamp-2 group-hover:text-blue-400 transition">
+                        {article.title}
+                      </h2>
+
+                      {article.excerpt && (
+                        <p className="text-gray-400 text-sm line-clamp-3 mb-4">
+                          {article.excerpt}
+                        </p>
+                      )}
+
+                      <div className="flex items-center gap-4 text-xs text-gray-500">
+                        <div className="flex items-center gap-1">
+                          <Calendar size={14} />
+                          {formatDate(article.publishedAt)}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock size={14} />
+                          {article.readTime} min
+                        </div>
+                        {article.views > 0 && (
+                          <div className="flex items-center gap-1">
+                            <Eye size={14} />
+                            {article.views.toLocaleString()}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
           </div>
         </section>
       </main>

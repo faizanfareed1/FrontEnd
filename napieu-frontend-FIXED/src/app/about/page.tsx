@@ -11,10 +11,18 @@ export default function AboutPage() {
   const [theme, setTheme] = useState<Theme | null>(null);
 
   useEffect(() => {
-    fetch(apiUrl('/api/themes/active'))
-      .then(res => res.ok ? res.json() : null)
-      .then(setTheme)
-      .catch(console.error);
+    // Only fetch theme on client side (not during build)
+    if (typeof window !== 'undefined') {
+      fetch(apiUrl('/api/themes/active'))
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data) setTheme(data);
+        })
+        .catch(err => {
+          // Silently fail - theme is optional
+          console.debug('Theme fetch failed:', err);
+        });
+    }
   }, []);
 
   return (

@@ -1,13 +1,11 @@
 [build]
   command = "npm run build"
-  publish = "out"
+  publish = ".next"  # Changed from "out" - uses Next.js build output
 
 [build.environment]
   NODE_VERSION = "18"
+  NEXT_PUBLIC_API_URL = "https://muhammadfaizan-practice-7.onrender.com"
 
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
-    X-XSS-Protection = "1; mode=block"
+# Use Netlify's Next.js plugin for proper SSR/dynamic routes
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

@@ -27,7 +27,10 @@ export default function HomePage() {
   const [editorsPickArticles, setEditorsPickArticles] = useState<Article[]>([]);
 
   useEffect(() => {
-    fetchAll();
+    // Only fetch on client side (not during build)
+    if (typeof window !== 'undefined') {
+      fetchAll();
+    }
   }, []);
   const fetchAll = async () => {
   try {

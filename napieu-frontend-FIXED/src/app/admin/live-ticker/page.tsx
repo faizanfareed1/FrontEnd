@@ -28,6 +28,15 @@ export default function LiveTickerAdminPage() {
     expiresAt: '',
   });
 
+  // Helper function to get auth headers
+  const getAuthHeaders = () => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    return {
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    };
+  };
+
   useEffect(() => {
     fetchTickers();
   }, []);
@@ -69,9 +78,7 @@ export default function LiveTickerAdminPage() {
       
       const res = await fetch(url, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(formData),
       });
 
@@ -98,6 +105,7 @@ export default function LiveTickerAdminPage() {
     try {
       const res = await fetch(apiUrl(`/api/live-ticker/${id}`), {
         method: 'DELETE',
+        headers: getAuthHeaders(),
       });
 
       if (res.ok) {
@@ -117,6 +125,7 @@ export default function LiveTickerAdminPage() {
     try {
       const res = await fetch(apiUrl(`/api/live-ticker/${id}/toggle`), {
         method: 'PATCH',
+        headers: getAuthHeaders(),
       });
 
       if (res.ok) {
